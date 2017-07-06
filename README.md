@@ -16,19 +16,19 @@ Single object tracking, implemented from [SINT](https://arxiv.org/abs/1605.05863
 
 ## Train the model
 * Refer more details to 'train/train_SINT_triplet.py'
-* example usage, in shell
+* example usage
 ```shell
 python train_SINT_triplet.py --lmnn --rand_mirror --fine_tune --lr 0.001 --lmnn_threshd 0.9 --gpus 0
 ```
 
 ## Evaluate the model
 * The 'test/' folder is used to test the trained model on OTB dataset. The tracking results will be outputted to a directory.
-* example usage, in shell
+* example usage
 ```shell
 python eval_SINT_train.py --overlapthresh 0.6 --topK 5 --numangles 20
 ```
 * The 'evaluation/' folder is used to compare tracking results with other trackers. More details can be found from [Visual Tracker Benchmark](http://cvlab.hanyang.ac.kr/tracker_benchmark/)
-* example usage, in matlab
+* example usage
 ```matlab
 src_root = '/dir/to/your/generated/tracking_results'
 prepare_for_evaluation(src_root)
