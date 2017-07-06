@@ -1,0 +1,7 @@
+Basketball,1,725,/home/liangkeg/SOT/OTB/Basketball
+CarDark,1,393,/home/liangkeg/SOT/OTB/CarDark
+FleetFace,1,707,/home/liangkeg/SOT/OTB/FleetFace
+MotorRolling,1,164,/home/liangkeg/SOT/OTB/MotorRolling
+Freeman4,1,283,/home/liangkeg/SOT/OTB/Freeman4
+Suv,1,945,/home/liangkeg/SOT/OTB/Suv
+Jogging-1,1,307,/home/liangkeg/SOT/OTB/Jogging

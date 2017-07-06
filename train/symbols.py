@@ -1,6 +1,9 @@
 import mxnet as mx
 
 def get_symbol(num_labels, args):
+    '''
+    symbols built on VGG16
+    '''
     data = mx.symbol.Variable(name='data')
     rois = mx.symbol.Variable(name='rois')
     rois = mx.symbol.Reshape(data=rois, shape=(-1, 5), name='rois_reshape')

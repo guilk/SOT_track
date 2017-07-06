@@ -56,48 +56,7 @@ class VerfiLoss(mx.operator.CustomOp):
                     # z = d1
                 y[i_ind] = z.asnumpy()[0]
 
-        # pos_loss = 0
-        # neg_loss = 0
-        # if np.sum(labels == 1) != 0:
-        #     pos_loss = np.sum(y[labels == 1])/np.sum(labels==1)
-        # if np.sum(labels == 0) != 0:
-        #     neg_loss = np.sum(y[labels == 1]) / np.sum(labels==0)
-        # print 'The average of positive pair loss: {} and ' \
-        #       'negative pair loss: {}'.format(pos_loss,neg_loss)
 
-
-        # print np.sum(y>0),x.shape[0]
-                # y[i_ind] = z
-
-        #y = mx.nd.array((n, ), ctx=ctx)
-        # for i in range(x.shape[0]):
-        #     pid = i+1 if i % 2 ==0 else i - 1
-        #     diff = x[i] - x[pid]
-        #     # expand_diff = mx.nd.expand_dims(diff, axis=0)
-        #     d = mx.nd.sum(diff * diff)
-        #     if labels[i] == 1:
-        #         z = d
-        #     else:
-        #         d1 = mx.nd.maximum(0, self.threshd - mx.nd.sqrt(d))
-        #         z = d1 * d1
-        #     y[i] = z.asnumpy()[0]
-            # #print "forward", i
-            # mask = np.zeros((n, ))
-            # if i<(x.shape[0]/2):
-            #     pid = i + 1 if i % 2 == 0 else i - 1
-            #     mask[i] = 1
-            #     mask[pid] = 1
-            # #mask[np.where(label == label[i])] = 1
-            # #print mask
-            # pos = np.sum(mask)
-            # mask = mx.nd.array(mask, ctx=ctx)
-            # diff = x[i] - x
-            # d = mx.nd.sqrt(mx.nd.sum(diff * diff, axis=1))
-            # d1 = mx.nd.maximum(0, self.threshd - d)
-            # z = mx.nd.sum(mask * d * d) / (pos + self.eps) \
-            #     + mx.nd.sum((1 - mask) * d1 * d1) / (n - pos + self.eps)
-            # y[i] = z.asnumpy()[0]
-        # y /= x.shape[0]
         self.assign(out_data[0], req[0], mx.nd.array(y, ctx=ctx))
 
     def backward(self, req, out_grad, in_data, out_data, in_grad, aux):
@@ -127,46 +86,6 @@ class VerfiLoss(mx.operator.CustomOp):
                     grad[i_ind] = g1 * diff
         grad *= self.grad_scale
 
-        # for i in range(x.shape[0]):
-        #     pid = i + 1 if i % 2 == 0 else i - 1
-        #     diff = x[i] - x[pid]
-        #     # expand_diff = mx.nd.expand_dims(diff,axis=0)
-        #
-        #     if labels[i] == 1:
-        #         grad[i] = diff
-        #     else:
-        #         # print '***********************************'
-        #         # print expand_diff
-        #         d = mx.nd.sqrt(mx.nd.sum(diff * diff))
-        #         g1 = mx.nd.minimum(0, (d - self.threshd) / (d + self.eps))
-        #         grad[i] = g1 * diff
-        #         # grad[i] = mx.nd.dot(g1,expand_diff)[0]
-        # grad *= self.grad_scale
-
-        #
-        #
-        #
-        #     mask = np.zeros((1, n))
-        #     #mask[np.where(label == label[i])] = 1
-        #     if i<(x.shape[0]/2):
-        #             pid = i + 1 if i % 2 == 0 else i - 1
-        #             mask[0,i] = 1
-        #             mask[0,pid] = 1
-        #     pos = np.sum(mask)
-        #     mask = mx.nd.array(mask, ctx=ctx)
-        #     diff = x[i] - x
-        #     d = mx.nd.sqrt(mx.nd.sum(diff * diff, axis=1))
-        #     g1 = mx.nd.minimum(0, (d - self.threshd) / (d + self.eps))
-        #     z = mx.nd.dot((1 - mask) * g1.reshape([1, n]), diff)[0]
-        #     # print grad[i].shape, z.shape
-        #     # grad[i] = z
-        #     # print "z"
-        #     grad[i] = mx.nd.dot(mask, diff)[0] / (pos + self.eps)\
-        #         + mx.nd.dot((1 - mask) * g1.reshape([1, n]), diff)[0] / (n - pos + self.eps)
-        #
-        # grad *= self.grad_scale
-
-
 
 @mx.operator.register("verifiLoss")
 class VerifiLossProp(mx.operator.CustomOpProp):
@@ -184,10 +103,7 @@ class VerifiLossProp(mx.operator.CustomOpProp):
         return ['output']
 
     def infer_shape(self, in_shape):
-        # print 'in data 0 shape: {}'.format(in_shape)
-        # print 'in data 1 shape: {}'.format(in_shape)
 
-        # assert False
         data_shape = in_shape[0]
         label_shape = (in_shape[0][0], )
         output_shape = (in_shape[0][0], )

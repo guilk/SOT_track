@@ -42,6 +42,9 @@ def check_label_shapes(labels, preds, shape=0):
 
 
 class IgnoreAccuracy(metric.EvalMetric):
+    '''
+    Compute accuracy without considering the ignored labels
+    '''
 
     def __init__(self, axis=1, name='ignore_accuracy',
                  output_names=None, label_names=None):
@@ -111,12 +114,6 @@ class MutableModule(Module):
 
         if validation_metric is None:
             validation_metric = lmnn_metric
-        # if not isinstance(eval_metric, metric.EvalMetric):
-        #     eval_metric = metric.create(eval_metric)
-        # if validation_metric is None:
-        #     validation_metric = eval_metric
-        # if not isinstance(eval_metric, metric.EvalMetric):
-        #     eval_metric = metric.create(eval_metric)
 
         ################################################################################
         # training loop
@@ -136,10 +133,7 @@ class MutableModule(Module):
 
                 self.update_metric(acc_metric, data_batch.label)
                 self.update_metric(lmnn_metric, data_batch.label)
-                #
-                # self.update_metric(acc_metric, data_batch.label)
 
-                # assert False
                 if monitor is not None:
                     monitor.toc_print()
 

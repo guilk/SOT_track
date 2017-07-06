@@ -8,18 +8,19 @@ import logging
 from tensorboard import SummaryWriter
 import time
 import cPickle
-from triplet_iterator import triplet_iterator
+from triplet_iterator import TripletIter
 from mutable_module import MutableModule
 
 from collections import namedtuple
 Batch = namedtuple('Batch',['data'])
 
 def get_data_iter():
-
-    tr_data_iter = triplet_iterator(split_type = 'triplet_train', aug_params=args)
-    val_data_iter = triplet_iterator(split_type = 'triplet_val', aug_params=args)
+    '''
+    Initialize train/val data iterators, and get stats from training set.
+    '''
+    tr_data_iter = TripletIter(split_type = 'triplet_train', aug_params=args)
+    val_data_iter = TripletIter(split_type = 'triplet_val', aug_params=args)
     num_labels, num_samples = tr_data_iter.get_stats()
-    # return val_data_iter
     return tr_data_iter, val_data_iter, num_labels, num_samples
 
 def parse_args():
@@ -53,11 +54,13 @@ def parse_args():
     parser.add_argument('--lsoftmax', dest='lsoftmax', action='store_true', default=False,
                         help='Set true if using lsoftmax')
 
+    # arguments used for verification loss
     parser.add_argument('--verifi', dest='verifi',action='store_true',
                         help='Set true if using verification loss', default=True)
     parser.add_argument('--verifi_threshd', dest='verifi_threshd', type=float, default=1.6,
                         help='the threshold used for verification loss')
 
+    # arguments used for lmnn loss
     parser.add_argument('--lmnn', dest='lmnn', action='store_true',
                         help='Set true if using lmnn loss', default=False)
     parser.add_argument('--lmnn_threshd', dest='lmnn_threshd', type=float, default=0.9,
@@ -65,6 +68,7 @@ def parse_args():
     parser.add_argument('--lmnn_epsilon', dest='lmnn_epsilon', type=float, default=0.1,
                         help='the epsilon used for lmnn loss')
 
+    # arguments used for triplet loss
     parser.add_argument('--triplet', action='store_true', default=False,
                         help='if use triplet loss')
     parser.add_argument('--triplet-weight', type=float, default=1.0,
@@ -98,6 +102,7 @@ if __name__ == '__main__':
     num_rois = args.num_rois
     devices = [mx.gpu(int(i)) for i in args.gpus.split(',')]
 
+    # used for debug, will be removed in the future
     if args.fine_tune_all:
         if args.ignore_neg:
             prefix = os.path.join('./all_models', 'ignore_threshold_' + str(args.lmnn_threshd) + '_lr_' + str(args.lr))
@@ -125,13 +130,13 @@ if __name__ == '__main__':
         else:
             logdir = './logs/learning_rate_'+str(args.lr)+'_threshold_'+str(args.lmnn_threshd)+'_logs/'
 
+
+    # set up logging system
     if not os.path.exists(logdir):
         os.makedirs(logdir)
     else:
         cmd = 'rm -rf '+logdir+'*'
         os.system(cmd) # clear log files
-
-    # set logging file
     logging.basicConfig(filename=os.path.join(logdir,'{}.log'.format(args.mode)),level=logging.DEBUG)
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -140,7 +145,7 @@ if __name__ == '__main__':
     # where to keep your TensorBoard logging file
     summary_writer = SummaryWriter(logdir)
 
-    # set model
+    # fetch arguments
     _, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, 'SINT'), 0)
 
     fixed_param_names = []
@@ -158,23 +163,14 @@ if __name__ == '__main__':
 
     train, val, num_labels, num_samples = get_data_iter()
 
-    # while(1):
-    #     train.next()
-
     net = get_symbol(num_labels, args)
     mx.viz.plot_network(net).view()
-    # net = build_network(symbol, num_labels)
-    output_names = net.list_outputs()
-    print output_names
+
     stepPerEpoch = int(num_samples / batch_size)
     lr_scheduler = mx.lr_scheduler.MultiFactorScheduler(
         step=[stepPerEpoch * x for x in [3,6]], factor=0.5)
     init = mx.initializer.Xavier(
         rnd_type='gaussian', factor_type='in', magnitude=2)
-
-    print 'num_labels: {}'.format(num_labels)
-    print 'num_samples: {}'.format(num_samples)
-    print 'step per epoch: {}'.format(stepPerEpoch)
 
     num = 1
     if args.lmnn:
@@ -182,6 +178,10 @@ if __name__ == '__main__':
 
     epoch_end_callback = mx.callback.do_checkpoint(prefix)
     batch_end_callback = mx.callback.Speedometer(batch_size=batch_size)
+
+    print 'num_labels: {}'.format(num_labels)
+    print 'num_samples: {}'.format(num_samples)
+    print 'step per epoch: {}'.format(stepPerEpoch)
 
     optimizer_params = (('learning_rate', args.lr), ('momentum', 0.9),
                         ('wd',0.0001), ('clip_gradient',10),('lr_scheduler',lr_scheduler),
@@ -193,13 +193,6 @@ if __name__ == '__main__':
                           logger=logger,
                           context=devices,
                           fixed_param_names=fixed_param_names)
-
-    # model = mx.mod.Module(symbol=net,
-    #                       data_names = train.data_names,
-    #                       label_names=train.label_names,
-    #                       logger=logger,
-    #                       context=devices,
-    #                       fixed_param_names=fixed_param_names)
 
     model.fit(train_data=train,
               eval_metric=None,
