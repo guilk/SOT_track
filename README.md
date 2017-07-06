@@ -18,5 +18,5 @@ Single object tracking, implemented from [SINT](https://arxiv.org/abs/1605.05863
 * Refer more details to 'train/train_SINT_triplet.py'
 * example usage
 ```python
-python train_SINT_triplet.py --lmnn --rand_mirror --fine_tune --lr 0.001 --lmnn_threshd 0.9 --gpus 0
+python train_SINT_triplet.py '--'lmnn --rand_mirror --fine_tune --lr 0.001 --lmnn_threshd 0.9 --gpus 0
 ```
